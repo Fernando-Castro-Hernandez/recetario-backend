@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Secrets & Environments ###
+# Los perfiles (dev, pdn) llevan credenciales de la base de datos: nunca se suben
+application-*.properties
+.env
+.env.*
