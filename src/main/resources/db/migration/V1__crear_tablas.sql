@@ -20,6 +20,6 @@ CREATE TABLE recetas (
 
 -- Supabase expone el esquema "public" en su API REST. Activar RLS sin políticas
 -- bloquea ese acceso: solo el backend (dueño de las tablas) puede leer y escribir.
+-- (flyway_schema_history no se toca aquí: Flyway la tiene bloqueada mientras migra)
 ALTER TABLE categorias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recetas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE flyway_schema_history ENABLE ROW LEVEL SECURITY;
