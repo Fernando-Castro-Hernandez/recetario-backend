@@ -20,7 +20,7 @@
 
 ---
 
-> 🚧 **Proyecto recién iniciado.** Hoy el repositorio contiene el esqueleto generado con Spring Initializr. Lo marcado como *planeado* todavía no está implementado; el [roadmap](#-roadmap) dice qué existe y qué falta.
+> 🚧 **En construcción.** Ya se pueden consultar las recetas; lo marcado como *planeado* todavía no está implementado. El [roadmap](#-roadmap) dice qué existe y qué falta.
 
 ## 🥘 ¿Qué es?
 
@@ -61,10 +61,11 @@ flowchart LR
 |---|---|---|
 | Lenguaje | Java 21 | ✅ |
 | Framework | Spring Boot 4.1.3 (Web MVC) | ✅ |
-| Persistencia | Spring Data JPA + PostgreSQL | ✅ dependencia lista |
+| Persistencia | Spring Data JPA + PostgreSQL (Supabase) | ✅ |
+| Migraciones | Flyway | ✅ |
 | Validación | Jakarta Validation | ✅ dependencia lista |
-| Documentación | SpringDoc OpenAPI (Swagger UI) | ✅ dependencia lista |
-| Mapeo | MapStruct | 🔜 planeado |
+| Documentación | SpringDoc OpenAPI (Swagger UI) | ✅ |
+| Mapeo | MapStruct | ✅ |
 | Seguridad | OAuth2 Resource Server (tokens de Firebase) | 🔜 planeado |
 | IA | Spring AI + pgvector (RAG) | 🔜 planeado |
 
@@ -88,29 +89,41 @@ mx.edu.tecdesoftware.recetario
     └── mapper            → MapStruct: entidad ⇄ dominio
 ```
 
-> Esta estructura es la planeada; se irá creando conforme se implemente cada flujo.
+Las tablas viven en `src/main/resources/db/migration` como scripts versionados de **Flyway** (`V1__crear_tablas.sql`, `V2__datos_iniciales.sql`). Cada script corre una sola vez, así la base de datos queda registrada en el repositorio.
 
 ## 🚀 Puesta en marcha
 
-**Requisitos:** JDK 21. El Gradle Wrapper viene incluido.
+**Requisitos:** JDK 21 y un proyecto de [Supabase](https://supabase.com). El Gradle Wrapper viene incluido.
+
+1. Copia `src/main/resources/application-dev.properties.example` como `application-dev.properties` (ignorado por Git) y llena tu usuario y contraseña del **Session pooler** de Supabase.
+2. Arranca la API. Al iniciar, **Flyway** crea las tablas y carga 13 recetas de ejemplo (solo la primera vez).
 
 ```powershell
-# Compilar (funciona hoy)
-.\gradlew.bat build -x test
+.\gradlew.bat bootRun          # API en http://localhost:8090
+.\gradlew.bat build -x test    # solo compilar
 ```
 
 En Linux/macOS usa `./gradlew`.
 
-> ⚠️ `bootRun` todavía no arranca: falta configurar la conexión a la base de datos, que es el siguiente paso del roadmap. Las credenciales irán en `src/main/resources/application-dev.properties`, un archivo ignorado por Git que **nunca** se sube al repositorio.
+**Swagger UI:** http://localhost:8090/swagger-ui.html
+
+### Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/recipes` | Todas las recetas, ordenadas por nombre, con su categoría |
+| `GET` | `/recipes/{id}` | Una receta (`404` si no existe) |
+| `GET` | `/recipes/category/{id}` | Recetas de una categoría |
 
 ## 🗺 Roadmap
 
 - [x] Proyecto inicial con Spring Initializr
 - [x] Credenciales fuera del repositorio desde el primer día
-- [ ] Conexión a PostgreSQL (Supabase) con perfil `dev`
-- [ ] CRUD de recetas y categorías
+- [x] Conexión a PostgreSQL (Supabase) con perfil `dev`
+- [x] Tablas y 13 recetas de ejemplo con migraciones de Flyway
+- [x] Consultar recetas con su categoría (`GET /recipes`)
+- [ ] Crear, editar y borrar recetas (`POST`, `PUT`, `DELETE`)
 - [ ] Foto de la receta (`imageUrl`)
-- [ ] Swagger con ejemplos de cada endpoint
 - [ ] Acceso solo con sesión iniciada (token de Firebase)
 - [ ] Asistente de cocina con RAG
 

@@ -1,0 +1,10 @@
+# Copia este archivo como application-dev.properties (ignorado por Git) y llena tus datos.
+server.port=8090
+
+# Supabase > Connect > Session pooler (funciona con IPv4)
+spring.datasource.url=jdbc:postgresql://aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+spring.datasource.username=postgres.TU_PROJECT_REF
+spring.datasource.password=TU_PASSWORD
+
+# El pooler gratuito de Supabase admite pocas conexiones simultáneas
+spring.datasource.hikari.maximum-pool-size=5
