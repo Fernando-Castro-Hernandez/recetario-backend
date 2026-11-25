@@ -24,6 +24,9 @@ public class Receta {
 
     private Integer porciones;
 
+    @Column(name = "imagen_url")
+    private String imagenUrl;
+
     // La FK se escribe con este campo...
     @Column(name = "id_categoria")
     private Integer idCategoria;
@@ -89,6 +92,14 @@ public class Receta {
 
     public void setPorciones(Integer porciones) {
         this.porciones = porciones;
+    }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
     }
 
     public Integer getIdCategoria() {

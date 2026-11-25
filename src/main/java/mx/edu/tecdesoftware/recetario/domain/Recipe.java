@@ -1,23 +1,47 @@
 package mx.edu.tecdesoftware.recetario.domain;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
+// Las anotaciones de validación se revisan cuando el controlador recibe la receta con @Valid
 public class Recipe {
 
-    private int recipeId;
+    private Integer recipeId; // Integer y no int: null significa "receta nueva", el id lo genera la base
+
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 120, message = "El nombre admite máximo 120 caracteres")
     private String name;
+
+    @Size(max = 300, message = "La descripción admite máximo 300 caracteres")
     private String description;
+
+    @NotBlank(message = "Los ingredientes son obligatorios")
     private String ingredients;
+
+    @NotBlank(message = "Las instrucciones son obligatorias")
     private String instructions;
+
+    @Positive(message = "El tiempo de preparación debe ser mayor a 0")
     private int prepTime; // minutos
+
+    @Positive(message = "Las porciones deben ser mayores a 0")
     private int servings;
+
+    @Size(max = 500, message = "La URL de la imagen admite máximo 500 caracteres")
+    private String imageUrl;
+
+    @Positive(message = "La categoría es obligatoria") // si no la mandan, llega en 0
     private int categoryId;
+
     private boolean active;
     private Category category;
 
-    public int getRecipeId() {
+    public Integer getRecipeId() {
         return recipeId;
     }
 
-    public void setRecipeId(int recipeId) {
+    public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
     }
 
@@ -67,6 +91,14 @@ public class Recipe {
 
     public void setServings(int servings) {
         this.servings = servings;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public int getCategoryId() {

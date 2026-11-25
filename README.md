@@ -20,7 +20,7 @@
 
 ---
 
-> 🚧 **En construcción.** Ya se pueden consultar las recetas; lo marcado como *planeado* todavía no está implementado. El [roadmap](#-roadmap) dice qué existe y qué falta.
+> 🚧 **En construcción.** Ya se pueden consultar, crear, editar y borrar recetas (con foto); lo marcado como *planeado* todavía no está implementado. El [roadmap](#-roadmap) dice qué existe y qué falta.
 
 ## 🥘 ¿Qué es?
 
@@ -63,7 +63,7 @@ flowchart LR
 | Framework | Spring Boot 4.1.3 (Web MVC) | ✅ |
 | Persistencia | Spring Data JPA + PostgreSQL (Supabase) | ✅ |
 | Migraciones | Flyway | ✅ |
-| Validación | Jakarta Validation | ✅ dependencia lista |
+| Validación | Jakarta Validation | ✅ |
 | Documentación | SpringDoc OpenAPI (Swagger UI) | ✅ |
 | Mapeo | MapStruct | ✅ |
 | Seguridad | OAuth2 Resource Server (tokens de Firebase) | 🔜 planeado |
@@ -79,24 +79,27 @@ Arquitectura **por capas orientada al dominio** (estilo puertos y adaptadores). 
 
 ```text
 mx.edu.tecdesoftware.recetario
-├── web/controller        → endpoints REST; solo habla con los servicios
+├── web
+│   ├── controller        → endpoints REST; solo habla con los servicios
+│   └── exception         → convierte los errores en respuestas JSON (400)
 ├── domain                → modelos de dominio (inglés)
 │   ├── service           → reglas del negocio
-│   └── repository        → interfaces del dominio (los "puertos")
+│   ├── repository        → interfaces del dominio (los "puertos")
+│   └── exception         → errores del negocio (p. ej. categoría inexistente)
 └── persistence           → implementaciones de esas interfaces (los "adaptadores")
     ├── entity            → entidades JPA (español)
     ├── crud              → repositorios de Spring Data
     └── mapper            → MapStruct: entidad ⇄ dominio
 ```
 
-Las tablas viven en `src/main/resources/db/migration` como scripts versionados de **Flyway** (`V1__crear_tablas.sql`, `V2__datos_iniciales.sql`). Cada script corre una sola vez, así la base de datos queda registrada en el repositorio.
+Las tablas viven en `src/main/resources/db/migration` como scripts versionados de **Flyway** (`V1__crear_tablas.sql`, `V2__datos_iniciales.sql`, `V3__agregar_imagen_url.sql`). Cada script corre una sola vez, así la base de datos queda registrada en el repositorio. Un script que ya corrió **no se edita** (Flyway guarda su checksum): cada cambio nuevo va en un script nuevo.
 
 ## 🚀 Puesta en marcha
 
 **Requisitos:** JDK 21 y un proyecto de [Supabase](https://supabase.com). El Gradle Wrapper viene incluido.
 
 1. Copia `src/main/resources/application-dev.properties.example` como `application-dev.properties` (ignorado por Git) y llena tu usuario y contraseña del **Session pooler** de Supabase.
-2. Arranca la API. Al iniciar, **Flyway** crea las tablas y carga 13 recetas de ejemplo (solo la primera vez).
+2. Arranca la API. Al iniciar, **Flyway** aplica los scripts que falten: la primera vez crea las tablas y carga 13 recetas de ejemplo.
 
 ```powershell
 .\gradlew.bat bootRun          # API en http://localhost:8090
@@ -114,6 +117,38 @@ En Linux/macOS usa `./gradlew`.
 | `GET` | `/recipes` | Todas las recetas, ordenadas por nombre, con su categoría |
 | `GET` | `/recipes/{id}` | Una receta (`404` si no existe) |
 | `GET` | `/recipes/category/{id}` | Recetas de una categoría |
+| `POST` | `/recipes` | Crea una receta → `201` con la receta y su categoría (`400` si los datos no son válidos) |
+| `PUT` | `/recipes/{id}` | Edita una receta → `200` (`400` datos inválidos, `404` si no existe) |
+| `DELETE` | `/recipes/{id}` | Borra una receta → `200` (`404` si no existe) |
+| `GET` | `/categories` | Categorías activas ordenadas por nombre (para el formulario y los filtros) |
+
+**Ejemplo de `POST /recipes`** (el `recipeId` lo genera la base de datos y la receta nace activa; `imageUrl` y `description` son opcionales):
+
+```json
+{
+  "name": "Molletes",
+  "description": "Bolillo con frijoles y queso gratinado.",
+  "ingredients": "2 bolillos\n1 taza de frijoles refritos\n100 g de queso Chihuahua",
+  "instructions": "1. Parte los bolillos.\n2. Úntalos con frijoles y agrega el queso.\n3. Hornea 10 minutos.",
+  "prepTime": 15,
+  "servings": 2,
+  "imageUrl": "https://example.com/molletes.jpg",
+  "categoryId": 1
+}
+```
+
+**Reglas de validación:** `name`, `ingredients` e `instructions` son obligatorios; `name` admite 120 caracteres, `description` 300 e `imageUrl` 500; `prepTime` y `servings` deben ser mayores a 0; `categoryId` debe ser una categoría que exista. Si algo falla, la respuesta es `400` con el error de cada campo:
+
+```json
+{
+  "status": 400,
+  "message": "Datos inválidos",
+  "errors": {
+    "name": "El nombre es obligatorio",
+    "prepTime": "El tiempo de preparación debe ser mayor a 0"
+  }
+}
+```
 
 ## 🗺 Roadmap
 
@@ -122,8 +157,10 @@ En Linux/macOS usa `./gradlew`.
 - [x] Conexión a PostgreSQL (Supabase) con perfil `dev`
 - [x] Tablas y 13 recetas de ejemplo con migraciones de Flyway
 - [x] Consultar recetas con su categoría (`GET /recipes`)
-- [ ] Crear, editar y borrar recetas (`POST`, `PUT`, `DELETE`)
-- [ ] Foto de la receta (`imageUrl`)
+- [x] Crear, editar y borrar recetas (`POST`, `PUT`, `DELETE`)
+- [x] Foto de la receta (`imageUrl`)
+- [x] Validación de datos con errores claros (`400`)
+- [x] Categorías para el formulario y los filtros (`GET /categories`)
 - [ ] Acceso solo con sesión iniciada (token de Firebase)
 - [ ] Asistente de cocina con RAG
 

@@ -13,4 +13,8 @@ public interface RecipeRepository {
     Optional<Recipe> getRecipe(int recipeId);
 
     List<Recipe> getByCategory(int categoryId);
+
+    Recipe save(Recipe recipe);
+
+    void delete(int recipeId);
 }

@@ -3,6 +3,7 @@ package mx.edu.tecdesoftware.recetario.persistence;
 import mx.edu.tecdesoftware.recetario.domain.Recipe;
 import mx.edu.tecdesoftware.recetario.domain.repository.RecipeRepository;
 import mx.edu.tecdesoftware.recetario.persistence.crud.RecetaCrudRepository;
+import mx.edu.tecdesoftware.recetario.persistence.entity.Receta;
 import mx.edu.tecdesoftware.recetario.persistence.mapper.RecipeMapper;
 import org.springframework.stereotype.Repository;
 
@@ -35,5 +36,20 @@ public class RecetaRepository implements RecipeRepository {
     @Override
     public List<Recipe> getByCategory(int categoryId) {
         return recipeMapper.toRecipes(recetaCrudRepository.findByIdCategoriaOrderByNombreAsc(categoryId));
+    }
+
+    // save() hace INSERT si el id es null y UPDATE si ya trae id
+    @Override
+    public Recipe save(Recipe recipe) {
+        Receta guardada = recetaCrudRepository.save(recipeMapper.toReceta(recipe));
+        // "categoria" es de solo lectura: lo que devuelve save() la trae vacía.
+        // Se vuelve a leer la receta para que JPA traiga la categoría completa
+        // (es una consulta nueva porque aquí no hay @Transactional que la guarde en caché).
+        return getRecipe(guardada.getIdReceta()).orElseThrow();
+    }
+
+    @Override
+    public void delete(int recipeId) {
+        recetaCrudRepository.deleteById(recipeId);
     }
 }
